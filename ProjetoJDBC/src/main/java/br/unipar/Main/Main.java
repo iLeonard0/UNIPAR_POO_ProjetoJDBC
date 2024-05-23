@@ -1,9 +1,6 @@
 package br.unipar.Main;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Main {
 
@@ -13,7 +10,10 @@ public class Main {
 
     public static void main(String[] args) {
         criarTabelaUsuario();
+        InserirUsuario("Taffe2", "12345", "Fabio", "1890-01-01");
+        listarTodosUsuarios();
     }
+
 
     public static Connection connection() throws SQLException {
 
@@ -25,7 +25,7 @@ public class Main {
             Connection conn = connection();
 
             Statement statement = conn.createStatement();
-            String sql = " CREATE TABLE IF NOT EXISTS usuario ("
+            String sql = " CREATE TABLE IF NOT EXISTS usuarios ("
                     + "codigo SERIAL PRIMARY KEY,"
                     + "username VARCHAR(50) NOT NULL UNIQUE,"
                     + "password VARCHAR(300) NOT NULL,"
@@ -36,12 +36,52 @@ public class Main {
             statement.executeUpdate(sql);
 
             System.out.println();
-            System.out.println("Tabela criada com sucesso");
+            System.out.println("Tabela criada com sucesso!");
 
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
     }
 
+    public static void InserirUsuario(String username, String password, String nome, String nascimento) {
+        try {
+            //Abre conexão
+            Connection conn = connection();
+
+            //Prepara a execução de um SQL
+            PreparedStatement preparedStatement = conn.prepareStatement(
+                    "INSERT into usuarios (username, password, nome, nascimento)"
+                        + "VALUES (?,?,?,?)"
+
+                    );
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
+            preparedStatement.setString(3, nome);
+            preparedStatement.setDate(4, java.sql.Date.valueOf(nascimento));
+
+            preparedStatement.executeUpdate();
+
+            System.out.println("Usuário Inserido!");
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void listarTodosUsuarios(){
+
+        try {
+            Connection conn = connection();
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM usuarios");
+            while(result.next()){
+                System.out.println(result.getInt("codigo"));
+                System.out.println(result.getString("username"));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }
